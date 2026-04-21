@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Zombie Apokalypse · FUNKTIONIERT</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { margin: 0; overflow: hidden; font-family: 'Arial Black', Impact, sans-serif; background: #000; }
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+        #topBar { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; pointer-events: none; }
+        #stats { background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 15px; border-left: 4px solid #f44; color: white; }
+        #serverInfo { background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 15px; border-right: 4px solid #4af; color: #aaf; }
+        #waveInfo { background: rgba(139,0,0,0.8); padding: 10px 25px; border-radius: 20px; color: #fd0; font-size: 20px; border: 2px solid #da0; }
+        #healthContainer { position: absolute; bottom: 20px; left: 20px; width: 280px; }
+        #healthBarBg { width: 100%; height: 22px; background: #200; border-radius: 11px; border: 2px solid #600; overflow: hidden; }
+        #healthBar { width: 100%; height: 100%; background: linear-gradient(90deg, #c22, #f44); transition: width 0.1s; }
+        #shieldBarBg { width: 100%; height: 14px; background: #122; border-radius: 7px; border: 1px solid #248; margin-top: 5px; overflow: hidden; }
+        #shieldBar { width: 0%; height: 100%; background: linear-gradient(90deg, #48f, #8cf); transition: width 0.1s; }
+        #staminaBarBg { width: 100%; height: 10px; background: #221; border-radius: 5px; border: 1px solid #860; margin-top: 3px; overflow: hidden; }
+        #staminaBar { width: 100%; height: 100%; background: linear-gradient(90deg, #fa0, #ff0); transition: width 0.1s; }
+        #ammoDisplay { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.7); padding: 12px 30px; border-radius: 30px; border: 2px solid #b80; color: #fd0; font-size: 28px; }
+        #crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; pointer-events: none; z-index: 200; }
+        #crosshair::before { content: ''; position: absolute; top: 50%; left: -6px; width: 4px; height: 1px; background: rgba(255,255,255,0.9); box-shadow: 0 0 4px #f00; }
+        #crosshair::after { content: ''; position: absolute; top: -6px; left: 50%; width: 1px; height: 4px; background: rgba(255,255,255,0.9); box-shadow: 0 0 4px #f00; }
+        #crosshair .right { position: absolute; top: 50%; right: -6px; width: 4px; height: 1px; background: rgba(255,255,255,0.9); box-shadow: 0 0 4px #f00; }
+        #crosshair .bottom { position: absolute; bottom: -6px; left: 50%; width: 1px; height: 4px; background: rgba(255,255,255,0.9); box-shadow: 0 0 4px #f00; }
+        #chatBox { position: absolute; bottom: 80px; left: 20px; width: 350px; max-height: 200px; background: rgba(0,0,0,0.6); border-radius: 10px; padding: 10px; backdrop-filter: blur(4px); pointer-events: none; display: none; }
+        #chatBox.active { display: block; }
+        #chatMessages { max-height: 150px; overflow-y: auto; color: #ddd; font-size: 13px; pointer-events: auto; }
+        .chat-msg { padding: 2px 5px; margin: 2px 0; }
+        .chat-system { color: #fa0; }
+        #chatInput { width: 100%; margin-top: 5px; padding: 8px; background: #222; border: 1px solid #444; color: white; border-radius: 5px; pointer-events: auto; display: none; }
+        #chatBox.active #chatInput { display: block; }
+        #deathScreen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 30px 50px; border-radius: 20px; border: 3px solid #f44; text-align: center; display: none; pointer-events: auto; z-index: 200; }
+        #deathScreen h2 { color: #f44; font-size: 36px; margin-bottom: 20px; }
+        #respawnBtn, #respawnPaidBtn { padding: 15px 30px; font-size: 18px; margin: 5px; border: none; border-radius: 30px; cursor: pointer; }
+        #respawnBtn { background: #2a2a2a; color: white; border: 2px solid #666; }
+        #respawnPaidBtn { background: #a00; color: white; border: 2px solid #fd0; }
+        #leaderboard { position: absolute; top: 80px; right: 20px; width: 200px; background: rgba(0,0,0,0.6); border-radius: 10px; padding: 15px; border: 1px solid #da0; }
+        #leaderboard h4 { color: #da0; text-align: center; margin-bottom: 10px; }
+        .lb-entry { display: flex; justify-content: space-between; color: #ccc; font-size: 13px; padding: 3px 0; border-bottom: 1px solid #333; }
+        #menuBtn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: #da0; color: #200; border: none; padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; pointer-events: auto; border: 2px solid #ff0; }
+        #menuPanel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 500px; background: rgba(20,0,0,0.95); border: 3px solid #a00; border-radius: 20px; padding: 20px; display: none; pointer-events: auto; z-index: 150; max-height: 80vh; overflow-y: auto; }
+        #menuTabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .menu-tab { flex: 1; padding: 10px; background: #2a0a0a; border: 2px solid #600; color: #ccc; cursor: pointer; border-radius: 10px; text-align: center; }
+        .menu-tab.active { background: #8b0000; border-color: #da0; color: white; }
+        .shop-item, .base-item, .weapon-item { display: flex; align-items: center; padding: 12px; margin: 5px 0; background: #1a1010; border-radius: 10px; }
+        .shop-item button, .base-item button, .weapon-item button { margin-left: auto; padding: 8px 16px; background: #2a6a2a; border: none; color: white; border-radius: 8px; cursor: pointer; }
+        #closeMenu { width: 100%; padding: 12px; margin-top: 15px; background: #600; border: none; color: white; border-radius: 10px; cursor: pointer; }
+        #inventoryBar { position: absolute; bottom: 100px; left: 20px; display: flex; gap: 10px; }
+        .inventory-slot { width: 50px; height: 50px; background: rgba(0,0,0,0.6); border: 2px solid #666; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        #headshotIndicator { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #fd0; font-size: 50px; text-shadow: 0 0 30px #f80; opacity: 0; transition: opacity 0.1s; pointer-events: none; }
+        #bossHealthContainer { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); width: 400px; background: rgba(0,0,0,0.8); border-radius: 15px; padding: 12px; border: 2px solid #da0; display: none; }
+        #bossName { color: #f44; font-size: 20px; text-align: center; margin-bottom: 8px; }
+        #bossHealthBg { width: 100%; height: 25px; background: #200; border-radius: 12px; border: 2px solid #600; overflow: hidden; }
+        #bossHealthFill { width: 100%; height: 100%; background: linear-gradient(90deg, #800, #f00); transition: width 0.1s; }
+        #damageNumbers { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+        .damage-number { position: absolute; font-size: 28px; font-weight: bold; text-shadow: 2px 2px 0 #000; animation: floatUp 1s ease-out forwards; color: white; }
+        .damage-critical { color: #fd0; font-size: 36px; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-60px); } }
+        #controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #888; font-size: 12px; background: rgba(0,0,0,0.4); padding: 5px 20px; border-radius: 20px; }
+        #weaponName { position: absolute; bottom: 80px; right: 20px; color: #da0; font-size: 16px; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div id="topBar">
+            <div id="stats"><span id="playerName">Survivor</span> · 🎯 <span id="score">0</span> · 💰 <span id="money">5000</span></div>
+            <div id="waveInfo">🌊 Welle <span id="wave">1</span></div>
+            <div id="serverInfo">🟢 <span id="playerCount">0</span> · 🧟 <span id="zombieCount">0</span></div>
+        </div>
+        <div id="bossHealthContainer">
+            <div id="bossName">💀 BOSS 💀</div>
+            <div id="bossHealthBg"><div id="bossHealthFill"></div></div>
+            <div style="color:#f66; text-align:right; margin-top:5px;"><span id="bossHP">0</span> HP</div>
+        </div>
+        <div id="healthContainer">
+            <div id="healthBarBg"><div id="healthBar"></div></div>
+            <div id="shieldBarBg"><div id="shieldBar"></div></div>
+            <div id="staminaBarBg"><div id="staminaBar"></div></div>
+        </div>
+        <div id="ammoDisplay">🔫 <span id="ammo">30</span> / <span id="maxAmmo">120</span></div>
+        <div id="weaponName">🔫 Pistole</div>
+        <div id="inventoryBar">
+            <div class="inventory-slot" id="slot1"></div>
+            <div class="inventory-slot" id="slot2"></div>
+            <div class="inventory-slot" id="slot3"></div>
+        </div>
+        <div id="crosshair"><div class="right"></div><div class="bottom"></div></div>
+        <div id="headshotIndicator">💀 HEADSHOT! 💀</div>
+        <div id="damageNumbers"></div>
+        <div id="chatBox">
+            <div id="chatMessages"></div>
+            <input type="text" id="chatInput" placeholder="Chat... (Enter)" maxlength="80">
+        </div>
+        <div id="leaderboard">
+            <h4>🏆 BESTENLISTE</h4>
+            <div id="lbList"></div>
+        </div>
+        <button id="menuBtn">📋 MENÜ (ESC)</button>
+        <div id="controls">WASD · SHIFT Sprint · LINKSKLICK Schießen · R Nachladen · / Chat · ESC Menü</div>
+    </div>
+    
+    <div id="deathScreen">
+        <h2>☠️ DU BIST GESTORBEN ☠️</h2>
+        <p style="color:#aaa; margin-bottom:15px;">Wiederbelebung in <span id="timerValue">3</span>s</p>
+        <button id="respawnPaidBtn">⚡ SOFORT (50💰)</button>
+        <button id="respawnBtn">🔄 KOSTENLOS</button>
+    </div>
+    
+    <div id="menuPanel">
+        <div id="menuTabs">
+            <div class="menu-tab active" data-tab="shop">🛒 Shop</div>
+            <div class="menu-tab" data-tab="weapons">🔫 Waffen</div>
+            <div class="menu-tab" data-tab="base">🏗️ Bauen</div>
+        </div>
+        <div id="menuContent"></div>
+        <button id="closeMenu">Schließen</button>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+        
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue, set, update, onChildAdded, onChildRemoved, push, remove, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDG94c5DbZjBoaG21b5YhJaEotpTzQVXO0",
+            authDomain: "gogame-b66fd.firebaseapp.com",
+            databaseURL: "https://gogame-b66fd-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "gogame-b66fd",
+            storageBucket: "gogame-b66fd.firebasestorage.app",
+            messagingSenderId: "347885192607",
+            appId: "1:347885192607:web:b586b44113612f20ace9aa"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        const avatarData = JSON.parse(localStorage.getItem('zombieAvatar') || '{"name":"Survivor","color":"#44aaff","outfit":"default","hat":"none"}');
+        const playerId = Math.random().toString(36).substr(2, 9);
+        const playerName = avatarData.name;
+        document.getElementById('playerName').textContent = playerName;
+        document.getElementById('playerName').style.color = avatarData.color;
+        
+        // THREE.js Setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a0a0a);
+        scene.fog = new THREE.FogExp2(0x1a0a0a, 0.006);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 2.5, 8);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+        
+        const labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0';
+        labelRenderer.domElement.style.pointerEvents = 'none';
+        document.body.appendChild(labelRenderer.domElement);
+        
+        const controls = new PointerLockControls(camera, document.body);
+        renderer.domElement.addEventListener('click', () => { 
+            if (!isDead && !menuOpen && !chatActive) controls.lock(); 
+        });
+        scene.add(controls.getObject());
+        
+        // Schöne Beleuchtung
+        scene.add(new THREE.AmbientLight(0x404060, 0.4));
+        const sun = new THREE.DirectionalLight(0xffccaa, 1.2);
+        sun.position.set(30, 40, 20);
+        sun.castShadow = true; sun.receiveShadow = true;
+        sun.shadow.mapSize.set(2048, 2048);
+        const d = 50;
+        sun.shadow.camera.left = -d; sun.shadow.camera.right = d;
+        sun.shadow.camera.top = d; sun.shadow.camera.bottom = -d;
+        scene.add(sun);
+        
+        // Rote Akzentlichter
+        const redLight1 = new THREE.PointLight(0xff4422, 0.6, 50);
+        redLight1.position.set(-10, 5, 10); scene.add(redLight1);
+        const redLight2 = new THREE.PointLight(0xff4422, 0.4, 50);
+        redLight2.position.set(15, 3, -15); scene.add(redLight2);
+        const blueLight = new THREE.PointLight(0x4466ff, 0.3, 50);
+        blueLight.position.set(-15, 4, -10); scene.add(blueLight);
+        
+        // Schöner Boden mit Textur-Effekt
+        const groundGeometry = new THREE.CircleGeometry(70, 64);
+        const groundMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x2a1a1a, 
+            roughness: 0.85, 
+            metalness: 0.05,
+            emissive: new THREE.Color(0x110a0a)
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI/2;
+        ground.position.y = -0.01;
+        ground.receiveShadow = true;
+        scene.add(ground);
+        
+        // Grid und Deko
+        const grid = new THREE.GridHelper(140, 40, 0x8b0000, 0x4a2a2a);
+        grid.position.y = 0.01; scene.add(grid);
+        
+        // Zufällige Felsen/Ruinen
+        for(let i = 0; i < 30; i++) {
+            const rock = new THREE.Mesh(
+                new THREE.DodecahedronGeometry(0.4 + Math.random() * 0.8),
+                new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.9 })
+            );
+            rock.position.x = (Math.random() - 0.5) * 60;
+            rock.position.z = (Math.random() - 0.5) * 60;
+            rock.position.y = 0.2;
+            rock.castShadow = true; rock.receiveShadow = true;
+            scene.add(rock);
+        }
+        
+        // Blutlachen
+        for(let i = 0; i < 20; i++) {
+            const blood = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.5 + Math.random(), 0.6, 0.03, 8),
+                new THREE.MeshStandardMaterial({ color: 0x6a0f0f, roughness: 0.95, emissive: new THREE.Color(0x220000) })
+            );
+            blood.position.x = (Math.random() - 0.5) * 55;
+            blood.position.z = (Math.random() - 0.5) * 55;
+            blood.position.y = 0.02;
+            blood.receiveShadow = true;
+            scene.add(blood);
+        }
+        
+        // Waffe
+        const gunGroup = new THREE.Group();
+        gunGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.22,0.15,0.8), new THREE.MeshStandardMaterial({color:0x222})));
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.7), new THREE.MeshStandardMaterial({color:0x444}));
+        barrel.rotation.z = Math.PI/2; barrel.position.z = -0.8; gunGroup.add(barrel);
+        gunGroup.position.set(0.3, -0.3, -0.5); camera.add(gunGroup); scene.add(camera);
+        
+        // Mündungsfeuer
+        const muzzleLight = new THREE.PointLight(0xffaa33, 0, 5);
+        muzzleLight.position.set(0.3, -0.3, -1.2); camera.add(muzzleLight);
+        
+        // Partikel
+        const bulletTrails = [];
+        
+        // State
+        let health = 100, maxHealth = 100, shield = 30, maxShield = 80;
+        let stamina = 100, maxStamina = 100;
+        let score = 0, money = 5000, ammo = 30, maxAmmo = 30, totalAmmo = 120;
+        let isDead = false, gameActive = true, reloading = false;
+        let chatActive = false, menuOpen = false, buildMode = false;
+        let wave = 1;
+        let weaponDamage = 40, fireRate = 150, lastShot = 0;
+        let currentWeapon = { name: 'Pistole', damage: 40, fireRate: 150, ammo: 30, maxAmmo: 30, totalAmmo: 120 };
+        let lastDamageTime = 0, invincible = false, sprinting = false;
+        let selectedBlock = 'wood';
+        let inventory = [null, null, null];
+        let bossActive = false, currentBoss = null;
+        let respawnTimerInterval = null;
+        
+        const zombies = new Map();
+        const otherPlayers = new Map();
+        const baseBlocks = new Map();
+        const playerRef = ref(db, `players/${playerId}`);
+        const zombiesRef = ref(db, 'zombies');
+        const blocksRef = ref(db, 'blocks');
+        const chatRef = ref(db, 'chat');
+        const waveRef = ref(db, 'wave');
+        const bossRef = ref(db, 'boss');
+        const leaderboardRef = ref(db, 'leaderboard');
+        
+        // Waffen
+        const weapons = [
+            { name: '🔫 Pistole', damage: 40, fireRate: 150, ammo: 30, maxAmmo: 30, totalAmmo: 120, price: 0, owned: true },
+            { name: '🔫 AK-47', damage: 55, fireRate: 90, ammo: 30, maxAmmo: 30, totalAmmo: 180, price: 5000 },
+            { name: '🔫 Schrotflinte', damage: 80, fireRate: 400, ammo: 8, maxAmmo: 8, totalAmmo: 40, price: 8000 },
+            { name: '🔫 Scharfschütze', damage: 150, fireRate: 800, ammo: 5, maxAmmo: 5, totalAmmo: 25, price: 15000 },
+            { name: '💥 Minigunner', damage: 25, fireRate: 40, ammo: 200, maxAmmo: 200, totalAmmo: 600, price: 125000 }
+        ];
+        
+        const shopItems = [
+            { name: '❤️ Kleine Heilung', desc: '+25 HP', price: 50, action: () => { if(money>=50) { health=Math.min(maxHealth,health+25); money-=50; updateUI(); } } },
+            { name: '💚 Große Heilung', desc: '+50 HP', price: 100, action: () => { if(money>=100) { health=Math.min(maxHealth,health+50); money-=100; updateUI(); } } },
+            { name: '🛡️ Schild', desc: '+30 Schild', price: 75, action: () => { if(money>=75) { shield=Math.min(maxShield,shield+30); money-=75; updateUI(); } } },
+            { name: '📦 Munition', desc: '+60 Munition', price: 40, action: () => { if(money>=40) { totalAmmo+=60; money-=40; updateUI(); } } },
+            { name: '⬆️ Max HP', desc: '+25 max HP', price: 200, action: () => { if(money>=200) { maxHealth+=25; health=Math.min(maxHealth,health+25); money-=200; updateUI(); } } }
+        ];
+        
+        const baseItems = [
+            { name: '🪵 Holzblock', price: 30, type: 'wood', health: 50 },
+            { name: '🧱 Steinmauer', price: 60, type: 'stone', health: 100 },
+            { name: '🔫 Geschützturm', price: 150, type: 'turret', health: 150 }
+        ];
+        
+        const bosses = {
+            5: { name: '👹 METZGER', health: 400, damage: 12, color: 0x8b0000, scale: 2.2 },
+            10: { name: '🔥 BRENNER', health: 600, damage: 15, color: 0xff4500, scale: 2.5 },
+            15: { name: '❄️ FROSTBRINGER', health: 800, damage: 18, color: 0x4169e1, scale: 2.8 },
+            20: { name: '💀 NECROMANCER', health: 1000, damage: 22, color: 0x800080, scale: 3.0 },
+            25: { name: '⚡ STURMHERR', health: 1500, damage: 28, color: 0xffd700, scale: 3.3 },
+            30: { name: '🌋 LAVAFÜRST', health: 2000, damage: 35, color: 0xff6600, scale: 3.6 },
+            40: { name: '👑 KRIEGSFÜRST', health: 3000, damage: 45, color: 0x8b0000, scale: 4.0 },
+            50: { name: '💀💀💀 APOKALYPTOR 💀💀💀', health: 8000, damage: 70, color: 0xff0000, scale: 5.5 }
+        };
+        
+        function createHealthBar(color1='#a00', color2='#f44') {
+            const container = document.createElement('div');
+            container.style.cssText = `width:60px;height:8px;background:#200;border-radius:4px;border:1px solid #600;overflow:hidden;`;
+            const fill = document.createElement('div');
+            fill.style.cssText = `width:100%;height:100%;background:linear-gradient(90deg,${color1},${color2});transition:width 0.1s;`;
+            container.appendChild(fill);
+            return { container, fill };
+        }
+        
+        function createZombieMesh(x, z, hp = 100) {
+            const group = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,1.8), new THREE.MeshStandardMaterial({color:0x3a5a3a, roughness:0.8}));
+            body.castShadow = true; body.receiveShadow = true; body.position.y = 0.9; group.add(body);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.45), new THREE.MeshStandardMaterial({color:0x4a6a4a}));
+            head.castShadow = true; head.receiveShadow = true; head.position.y = 1.75; head.name = 'head'; group.add(head);
+            const eyeGeo = new THREE.SphereGeometry(0.12);
+            const eyeMat = new THREE.MeshStandardMaterial({color:0xff0000, emissive:new THREE.Color(0x330000)});
+            const eyeL = new THREE.Mesh(eyeGeo, eyeMat); eyeL.position.set(-0.2,1.85,0.4); group.add(eyeL);
+            const eyeR = new THREE.Mesh(eyeGeo, eyeMat); eyeR.position.set(0.2,1.85,0.4); group.add(eyeR);
+            const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,1.0), new THREE.MeshStandardMaterial({color:0x3a5a3a}));
+            arm.castShadow = true;
+            const armL = arm.clone(); armL.position.set(-0.7,1.3,0); armL.rotation.z = 0.3; group.add(armL);
+            const armR = arm.clone(); armR.position.set(0.7,1.3,0); armR.rotation.z = -0.3; group.add(armR);
+            group.position.set(x, 0, z);
+            group.userData.health = hp;
+            group.userData.maxHealth = hp;
+            
+            const { container, fill } = createHealthBar();
+            const label = new CSS2DObject(container);
+            label.position.set(0, 2.8, 0);
+            group.add(label);
+            group.userData.healthBar = { obj: label, fill };
+            
+            return group;
+        }
+        
+        function createPlayerMesh(name, color, x, z, outfit, hat) {
+            const group = new THREE.Group();
+            let bodyColor = color;
+            if (outfit === 'military') bodyColor = 0x5a6a3a;
+            else if (outfit === 'hazmat') bodyColor = 0xcccc00;
+            
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,1.8), new THREE.MeshStandardMaterial({color:bodyColor}));
+            body.castShadow = true; body.receiveShadow = true; body.position.y = 0.9; group.add(body);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.4), new THREE.MeshStandardMaterial({color:color}));
+            head.castShadow = true; head.position.y = 1.7; group.add(head);
+            if (hat === 'cap') {
+                const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.45,0.15), new THREE.MeshStandardMaterial({color:0x333}));
+                cap.position.y = 2.0; group.add(cap);
+            } else if (hat === 'crown') {
+                const crown = new THREE.Mesh(new THREE.ConeGeometry(0.4,0.3), new THREE.MeshStandardMaterial({color:0xffd700}));
+                crown.position.y = 2.05; group.add(crown);
+            }
+            const div = document.createElement('div');
+            div.textContent = name;
+            div.style.cssText = `color:white;font-size:14px;font-weight:bold;text-shadow:1px 1px 3px black;background:rgba(0,0,0,0.5);padding:2px 8px;border-radius:10px;white-space:nowrap;`;
+            const label = new CSS2DObject(div);
+            label.position.y = 2.5;
+            group.add(label);
+            group.position.set(x, 0, z);
+            return group;
+        }
+        
+        function createBossMesh(bossData) {
+            const group = new THREE.Group();
+            const s = bossData.scale;
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(s, s*1.2, s*2), new THREE.MeshStandardMaterial({color:bossData.color, emissive:new THREE.Color(bossData.color).multiplyScalar(0.3)}));
+            body.castShadow = true; body.receiveShadow = true; body.position.y = s; group.add(body);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(s*0.7), new THREE.MeshStandardMaterial({color:bossData.color}));
+            head.castShadow = true; head.position.y = s*2.2; group.add(head);
+            const eye = new THREE.Mesh(new THREE.SphereGeometry(s*0.18), new THREE.MeshStandardMaterial({color:0xff0000, emissive:0x550000}));
+            eye.position.set(-s*0.3, s*2.3, s*0.6); group.add(eye);
+            const eye2 = eye.clone(); eye2.position.set(s*0.3, s*2.3, s*0.6); group.add(eye2);
+            const div = document.createElement('div');
+            div.innerHTML = `<div style="color:#f44;font-size:20px;font-weight:bold;text-shadow:0 0 15px red;">${bossData.name}</div>`;
+            const label = new CSS2DObject(div);
+            label.position.y = s*3.5;
+            group.add(label);
+            return group;
+        }
+        
+        function createBulletTrail(start, end) {
+            const points = [start.clone(), end.clone()];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0xffaa00 });
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            bulletTrails.push({ line, life: 0.15 });
+        }
+        
+        function addDamageNumber(value, x, y, isCritical=false) {
+            const div = document.createElement('div');
+            div.className = 'damage-number' + (isCritical ? ' damage-critical' : '');
+            div.textContent = Math.round(value);
+            div.style.left = (window.innerWidth/2 + x) + 'px';
+            div.style.top = (window.innerHeight/2 - y) + 'px';
+            document.getElementById('damageNumbers').appendChild(div);
+            setTimeout(() => div.remove(), 1000);
+        }
+        
+        function updateUI() {
+            document.getElementById('healthBar').style.width = (health/maxHealth)*100 + '%';
+            document.getElementById('shieldBar').style.width = (shield/maxShield)*100 + '%';
+            document.getElementById('staminaBar').style.width = (stamina/maxStamina)*100 + '%';
+            document.getElementById('ammo').textContent = ammo;
+            document.getElementById('maxAmmo').textContent = totalAmmo;
+            document.getElementById('score').textContent = score;
+            document.getElementById('money').textContent = money;
+            document.getElementById('wave').textContent = wave;
+            document.getElementById('weaponName').textContent = currentWeapon.name;
+        }
+        
+        function equipWeapon(weapon) {
+            currentWeapon = weapon;
+            weaponDamage = weapon.damage;
+            fireRate = weapon.fireRate;
+            ammo = weapon.ammo;
+            maxAmmo = weapon.maxAmmo;
+            totalAmmo = weapon.totalAmmo;
+            updateUI();
+        }
+        
+        function showHeadshot() {
+            const el = document.getElementById('headshotIndicator');
+            el.style.opacity = '1';
+            setTimeout(() => el.style.opacity = '0', 200);
+        }
+        
+        function takeDamage(amount) {
+            const now = Date.now();
+            if (isDead || invincible) return;
+            if (now - lastDamageTime < 400) return;
+            lastDamageTime = now;
+            
+            let remaining = amount;
+            if (shield > 0) {
+                const sd = Math.min(shield, remaining);
+                shield -= sd;
+                remaining -= sd;
+            }
+            if (remaining > 0) health = Math.max(0, health - remaining);
+            
+            updateUI();
+            invincible = true;
+            setTimeout(() => invincible = false, 500);
+            
+            document.body.style.backgroundColor = '#400';
+            setTimeout(() => document.body.style.backgroundColor = '', 50);
+            
+            if (health <= 0) die();
+        }
+        
+        function die() {
+            if (isDead) return;
+            isDead = true;
+            controls.unlock();
+            document.getElementById('deathScreen').style.display = 'block';
+            
+            let timer = 3;
+            const timerEl = document.getElementById('timerValue');
+            if (respawnTimerInterval) clearInterval(respawnTimerInterval);
+            respawnTimerInterval = setInterval(() => {
+                timer--;
+                timerEl.textContent = timer;
+                if (timer <= 0) {
+                    clearInterval(respawnTimerInterval);
+                    respawn();
+                }
+            }, 1000);
+        }
+        
+        function respawn(paid=false) {
+            if (paid && money < 50) return;
+            if (paid) money -= 50;
+            
+            if (respawnTimerInterval) clearInterval(respawnTimerInterval);
+            isDead = false;
+            health = maxHealth;
+            shield = maxShield / 2;
+            stamina = maxStamina;
+            ammo = currentWeapon.ammo;
+            totalAmmo = currentWeapon.totalAmmo;
+            camera.position.set(0, 2.5, 8);
+            document.getElementById('deathScreen').style.display = 'none';
+            updateUI();
+            setTimeout(() => controls.lock(), 100);
+        }
+        
+        function reload() {
+            if (reloading || ammo === maxAmmo || totalAmmo <= 0) return;
+            reloading = true;
+            setTimeout(() => {
+                const needed = maxAmmo - ammo;
+                const take = Math.min(needed, totalAmmo);
+                ammo += take;
+                totalAmmo -= take;
+                reloading = false;
+                updateUI();
+            }, 1500);
+        }
+        
+        function shoot() {
+            const now = Date.now();
+            if (!gameActive || isDead || reloading || ammo <= 0 || menuOpen || chatActive) {
+                if (ammo === 0 && totalAmmo > 0) reload();
+                return;
+            }
+            if (now - lastShot < fireRate) return;
+            lastShot = now;
+            
+            ammo--;
+            updateUI();
+            
+            // Mündungsfeuer
+            muzzleLight.intensity = 2.5;
+            setTimeout(() => muzzleLight.intensity = 0, 40);
+            
+            const raycaster = new THREE.Raycaster();
+            const dir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+            const startPos = camera.position.clone();
+            const endPos = startPos.clone().add(dir.multiplyScalar(50));
+            
+            raycaster.set(startPos, dir);
+            
+            // Kugel-Partikel
+            createBulletTrail(startPos.clone().add(dir.clone().multiplyScalar(0.5)), endPos);
+            
+            // Boss check
+            if (bossActive && currentBoss?.mesh) {
+                const hits = raycaster.intersectObject(currentBoss.mesh, true);
+                if (hits.length > 0) {
+                    currentBoss.health -= weaponDamage;
+                    document.getElementById('bossHealthFill').style.width = Math.max(0, (currentBoss.health/currentBoss.maxHealth)*100) + '%';
+                    document.getElementById('bossHP').textContent = Math.max(0, currentBoss.health);
+                    addDamageNumber(weaponDamage, 0, 50);
+                    
+                    if (currentBoss.health <= 0) {
+                        scene.remove(currentBoss.mesh);
+                        bossActive = false; currentBoss = null;
+                        document.getElementById('bossHealthContainer').style.display = 'none';
+                        score += 1000; money += 500;
+                        updateUI();
+                        sendMessage(`🏆 Boss besiegt! +1000 Punkte!`, true);
+                        set(bossRef, { defeated: true });
+                        wave++;
+                        set(waveRef, wave);
+                    }
+                    return;
+                }
+            }
+            
+            // Zombie check
+            const meshes = Array.from(zombies.values()).map(z => z.mesh);
+            const hits = raycaster.intersectObjects(meshes, true);
+            if (hits.length > 0) {
+                let hitObj = hits[0].object;
+                while (hitObj.parent && !hitObj.parent.userData?.health) hitObj = hitObj.parent;
+                const zombieGroup = hitObj.parent;
+                if (!zombieGroup) return;
+                
+                const isHeadshot = hits[0].object.name === 'head';
+                const damage = isHeadshot ? weaponDamage * 2.5 : weaponDamage;
+                
+                const zombieEntry = Array.from(zombies.entries()).find(([id, z]) => z.mesh === zombieGroup);
+                if (zombieEntry) {
+                    const [zombieId] = zombieEntry;
+                    const newHealth = zombieGroup.userData.health - damage;
+                    zombieGroup.userData.health = Math.max(0, newHealth);
+                    
+                    const percent = (zombieGroup.userData.health / zombieGroup.userData.maxHealth) * 100;
+                    zombieGroup.userData.healthBar.fill.style.width = Math.max(0, percent) + '%';
+                    
+                    const screenPos = zombieGroup.position.clone().project(camera);
+                    addDamageNumber(damage, (screenPos.x-0.5)*window.innerWidth, -(screenPos.y-0.5)*window.innerHeight, isHeadshot);
+                    
+                    if (isHeadshot) {
+                        showHeadshot();
+                        score += 20;
+                    }
+                    
+                    zombieGroup.children.forEach(c => { if (c.material) c.material.color.setHex(0xff6666); });
+                    setTimeout(() => zombieGroup.children.forEach(c => { if (c.material) c.material.color.setHex(0x3a5a3a); }), 100);
+                    
+                    if (newHealth <= 0) {
+                        remove(ref(db, `zombies/${zombieId}`));
+                        score += 100; money += 50;
+                        updateUI();
+                    } else {
+                        update(ref(db, `zombies/${zombieId}`), { health: newHealth });
+                    }
+                }
+            }
+            
+            if (ammo === 0) reload();
+        }
+        
+        function sendMessage(text, system=false) {
+            if (!text.trim()) return;
+            push(chatRef, {
+                name: system ? 'SYSTEM' : playerName,
+                text: text,
+                color: system ? '#ffaa00' : avatarData.color,
+                system: system,
+                timestamp: Date.now()
+            });
+        }
+        
+        // Chat
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatBox = document.getElementById('chatBox');
+        
+        onChildAdded(chatRef, (snap) => {
+            const msg = snap.val();
+            if (!msg) return;
+            const div = document.createElement('div');
+            div.className = 'chat-msg' + (msg.system ? ' chat-system' : '');
+            div.innerHTML = msg.system ? msg.text : `<span style="color:${msg.color};font-weight:bold;">${msg.name}:</span> ${msg.text}`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            if (chatMessages.children.length > 20) chatMessages.removeChild(chatMessages.children[0]);
+        });
+        
+        // Menü
+        function updateMenuContent(tab) {
+            const content = document.getElementById('menuContent');
+            if (tab === 'shop') {
+                content.innerHTML = shopItems.map((item, i) => `
+                    <div class="shop-item">
+                        <div style="flex:1;"><b>${item.name}</b><br><small>${item.desc}</small></div>
+                        <span style="color:#fd0; margin-right:10px;">${item.price}💰</span>
+                        <button data-i="${i}" ${money<item.price?'disabled':''}>Kaufen</button>
+                    </div>
+                `).join('');
+                content.querySelectorAll('button').forEach(b => b.addEventListener('click', (e) => {
+                    shopItems[parseInt(e.target.dataset.i)].action();
+                    updateMenuContent('shop');
+                }));
+            } else if (tab === 'weapons') {
+                content.innerHTML = weapons.map((w, i) => `
+                    <div class="weapon-item">
+                        <div style="flex:1;"><b>${w.name}</b><br><small>DMG: ${w.damage} | RPM: ${Math.round(60000/w.fireRate)}</small></div>
+                        <span style="color:#fd0; margin-right:10px;">${w.price >= 1000 ? (w.price/1000).toFixed(0)+'k' : w.price}💰</span>
+                        <button data-i="${i}" ${!w.owned && money<w.price ? 'disabled' : ''}>
+                            ${w.owned ? (currentWeapon.name === w.name ? 'Aktiv' : 'Ausrüsten') : 'Kaufen'}
+                        </button>
+                    </div>
+                `).join('');
+                content.querySelectorAll('button').forEach(b => b.addEventListener('click', (e) => {
+                    const weapon = weapons[parseInt(e.target.dataset.i)];
+                    if (!weapon.owned && money >= weapon.price) {
+                        money -= weapon.price;
+                        weapon.owned = true;
+                    }
+                    if (weapon.owned) {
+                        equipWeapon(weapon);
+                        updateUI();
+                    }
+                    updateMenuContent('weapons');
+                }));
+            } else if (tab === 'base') {
+                content.innerHTML = baseItems.map((item, i) => `
+                    <div class="base-item">
+                        <div style="flex:1;"><b>${item.name}</b><br><small>${item.health} HP</small></div>
+                        <span style="color:#fd0; margin-right:10px;">${item.price}💰</span>
+                        <button data-i="${i}" ${money<item.price?'disabled':''}>Bauen</button>
+                    </div>
+                `).join('');
+                content.querySelectorAll('button').forEach(b => b.addEventListener('click', (e) => {
+                    const item = baseItems[parseInt(e.target.dataset.i)];
+                    if (money >= item.price) {
+                        buildMode = true; selectedBlock = item.type;
+                        menuOpen = false; document.getElementById('menuPanel').style.display = 'none';
+                        controls.lock();
+                        sendMessage(`Baumodus: ${item.name} - Klicke zum Platzieren`, true);
+                    }
+                }));
+            }
+        }
+        
+        // Movement
+        const moveState = { f: false, b: false, l: false, r: false };
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Slash' && !chatActive && !isDead && !menuOpen) {
+                e.preventDefault(); chatActive = true; chatBox.classList.add('active'); chatInput.focus(); controls.unlock();
+            } else if (e.code === 'Escape') {
+                if (chatActive) {
+                    chatActive = false; chatBox.classList.remove('active'); chatInput.value = '';
+                    if (!isDead && !menuOpen) controls.lock();
+                } else if (!isDead) {
+                    menuOpen = !menuOpen;
+                    document.getElementById('menuPanel').style.display = menuOpen ? 'block' : 'none';
+                    if (menuOpen) { controls.unlock(); updateMenuContent('shop'); }
+                    else controls.lock();
+                }
+                e.preventDefault();
+            } else if (e.code === 'ShiftLeft') { sprinting = true; }
+            
+            if (isDead || chatActive || menuOpen) return;
+            
+            switch(e.code) {
+                case 'KeyW': moveState.f = true; e.preventDefault(); break;
+                case 'KeyS': moveState.b = true; e.preventDefault(); break;
+                case 'KeyA': moveState.l = true; e.preventDefault(); break;
+                case 'KeyD': moveState.r = true; e.preventDefault(); break;
+                case 'KeyR': reload(); e.preventDefault(); break;
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            switch(e.code) {
+                case 'KeyW': moveState.f = false; break;
+                case 'KeyS': moveState.b = false; break;
+                case 'KeyA': moveState.l = false; break;
+                case 'KeyD': moveState.r = false; break;
+                case 'ShiftLeft': sprinting = false; break;
+            }
+        });
+        
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.code === 'Enter') {
+                sendMessage(chatInput.value); chatInput.value = ''; chatActive = false;
+                chatBox.classList.remove('active'); if (!isDead && !menuOpen) controls.lock();
+            }
+        });
+        
+        document.querySelectorAll('.menu-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                updateMenuContent(tab.dataset.tab);
+            });
+        });
+        
+        document.getElementById('closeMenu').addEventListener('click', () => {
+            menuOpen = false; document.getElementById('menuPanel').style.display = 'none';
+            if (!isDead) controls.lock();
+        });
+        
+        document.getElementById('menuBtn').addEventListener('click', () => {
+            if (isDead) return;
+            menuOpen = true; document.getElementById('menuPanel').style.display = 'block';
+            controls.unlock(); updateMenuContent('shop');
+        });
+        
+        document.getElementById('respawnPaidBtn').addEventListener('click', () => respawn(true));
+        document.getElementById('respawnBtn').addEventListener('click', () => respawn(false));
+        
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 || !controls.isLocked || isDead || menuOpen || chatActive) return;
+            if (buildMode) {
+                const pos = camera.position.clone();
+                const dir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+                pos.add(dir.multiplyScalar(4));
+                const item = baseItems.find(b => b.type === selectedBlock);
+                if (money >= item.price) {
+                    const blockId = push(blocksRef).key;
+                    set(ref(db, `blocks/${blockId}`), {
+                        type: selectedBlock, x: Math.round(pos.x), z: Math.round(pos.z),
+                        health: item.health, owner: playerName
+                    });
+                    money -= item.price; updateUI();
+                }
+                buildMode = false;
+            } else {
+                shoot();
+            }
+        });
+        
+        function handleMovement() {
+            if (!controls.isLocked || isDead) return;
+            let spd = sprinting && stamina > 0 ? 0.28 : 0.16;
+            if (sprinting && stamina > 0) { stamina = Math.max(0, stamina - 0.5); updateUI(); }
+            else { stamina = Math.min(maxStamina, stamina + 0.3); updateUI(); }
+            
+            const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion); fwd.y = 0; fwd.normalize();
+            const rgt = new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion); rgt.y = 0; rgt.normalize();
+            const mv = new THREE.Vector3();
+            if (moveState.f) mv.add(fwd); if (moveState.b) mv.sub(fwd);
+            if (moveState.r) mv.add(rgt); if (moveState.l) mv.sub(rgt);
+            if (mv.length() > 0) {
+                mv.normalize();
+                camera.position.x += mv.x * spd;
+                camera.position.z += mv.z * spd;
+            }
+            camera.position.x = Math.max(-35, Math.min(35, camera.position.x));
+            camera.position.z = Math.max(-35, Math.min(35, camera.position.z));
+        }
+        
+        // Multiplayer Sync mit Cleanup
+        onChildAdded(ref(db, 'players'), (snap) => {
+            const id = snap.key; if (id === playerId) return;
+            const data = snap.val(); if (!data) return;
+            const mesh = createPlayerMesh(data.name, data.color, data.x, data.z, data.outfit, data.hat);
+            scene.add(mesh); otherPlayers.set(id, { mesh, data });
+        });
+        
+        onChildRemoved(ref(db, 'players'), (snap) => {
+            const p = otherPlayers.get(snap.key);
+            if (p) { scene.remove(p.mesh); otherPlayers.delete(snap.key); }
+        });
+        
+        onValue(ref(db, 'players'), (snap) => {
+            const players = snap.val() || {};
+            document.getElementById('playerCount').textContent = Object.keys(players).length;
+            otherPlayers.forEach((p, id) => {
+                if (players[id]) {
+                    p.mesh.position.set(players[id].x, 0, players[id].z);
+                    p.mesh.rotation.y = players[id].rotation;
+                }
+            });
+            
+            // Offline-Spieler löschen
+            const now = Date.now();
+            Object.entries(players).forEach(([id, data]) => {
+                if (now - data.lastSeen > 5000) {
+                    remove(ref(db, `players/${id}`));
+                }
+            });
+        });
+        
+        setInterval(() => {
+            if (controls.isLocked && !isDead) {
+                update(playerRef, {
+                    name: playerName, color: avatarData.color, outfit: avatarData.outfit, hat: avatarData.hat,
+                    x: camera.position.x, y: camera.position.y, z: camera.position.z,
+                    rotation: camera.rotation.y, health, score, lastSeen: Date.now()
+                });
+            }
+        }, 50);
+        
+        // Zombies - Server-synchronisiert
+        setInterval(() => {
+            if (isDead) return;
+            const maxZ = 8 + wave * 3;
+            if (zombies.size < maxZ && !bossActive) {
+                const angle = Math.random() * Math.PI * 2, r = 28 + Math.random() * 20;
+                const id = push(zombiesRef).key;
+                set(ref(db, `zombies/${id}`), {
+                    x: Math.cos(angle)*r, z: Math.sin(angle)*r,
+                    health: 100 + wave * 15, maxHealth: 100 + wave * 15,
+                    targetX: null, targetZ: null
+                });
+            }
+        }, 2000);
+        
+        onChildAdded(zombiesRef, (snap) => {
+            const id = snap.key; const data = snap.val();
+            if (!data || zombies.has(id)) return;
+            const mesh = createZombieMesh(data.x, data.z, data.health);
+            mesh.userData.maxHealth = data.maxHealth || data.health;
+            scene.add(mesh); zombies.set(id, { mesh });
+            document.getElementById('zombieCount').textContent = zombies.size;
+        });
+        
+        onChildRemoved(zombiesRef, (snap) => {
+            const z = zombies.get(snap.key);
+            if (z) { scene.remove(z.mesh); zombies.delete(snap.key); }
+            document.getElementById('zombieCount').textContent = zombies.size;
+            if (zombies.size === 0 && !bossActive) {
+                wave++; set(waveRef, wave);
+                money += 150; health = Math.min(maxHealth, health + 30);
+                updateUI(); sendMessage(`🌊 Welle ${wave} beginnt!`, true);
+                if (bosses[wave]) {
+                    const b = bosses[wave];
+                    set(bossRef, {
+                        name: b.name, health: b.health, maxHealth: b.health,
+                        damage: b.damage, color: b.color, scale: b.scale, defeated: false, x: 0, z: -25
+                    });
+                    sendMessage(`💀 ${b.name} erscheint!`, false);
+                }
+            }
+        });
+        
+        onValue(zombiesRef, (snap) => {
+            const data = snap.val() || {};
+            zombies.forEach((z, id) => {
+                if (data[id]) {
+                    z.mesh.position.x = data[id].x; z.mesh.position.z = data[id].z;
+                    if (data[id].health !== undefined) {
+                        z.mesh.userData.health = data[id].health;
+                        const percent = (data[id].health / z.mesh.userData.maxHealth) * 100;
+                        z.mesh.userData.healthBar.fill.style.width = Math.max(0, percent) + '%';
+                    }
+                }
+            });
+        });
+        
+        // Zombie KI - Schneller!
+        setInterval(() => {
+            if (isDead) return;
+            const playerPos = camera.position;
+            zombies.forEach((z, id) => {
+                if (!z.mesh) return;
+                const dx = playerPos.x - z.mesh.position.x, dz = playerPos.z - z.mesh.position.z;
+                const dist = Math.sqrt(dx*dx + dz*dz);
+                if (dist > 1.5) {
+                    // SCHNELLER: 0.04 statt 0.022
+                    z.mesh.position.x += (dx/dist) * 0.04;
+                    z.mesh.position.z += (dz/dist) * 0.04;
+                    z.mesh.lookAt(playerPos.x, z.mesh.position.y, playerPos.z);
+                } else {
+                    takeDamage(8 + wave * 2);
+                }
+                update(ref(db, `zombies/${id}`), { x: z.mesh.position.x, z: z.mesh.position.z });
+            });
+        }, 50);
+        
+        // Boss Sync
+        onValue(bossRef, (snap) => {
+            const boss = snap.val();
+            if (boss && !boss.defeated) {
+                if (!bossActive) {
+                    bossActive = true; currentBoss = boss;
+                    currentBoss.mesh = createBossMesh(boss);
+                    currentBoss.mesh.position.set(boss.x||0, 0, boss.z||-25);
+                    scene.add(currentBoss.mesh);
+                    document.getElementById('bossHealthContainer').style.display = 'block';
+                    document.getElementById('bossName').textContent = `💀 ${boss.name} 💀`;
+                    document.getElementById('bossHP').textContent = boss.health;
+                    document.getElementById('bossHealthFill').style.width = '100%';
+                }
+                if (currentBoss) {
+                    currentBoss.health = boss.health;
+                    document.getElementById('bossHealthFill').style.width = (boss.health/boss.maxHealth)*100 + '%';
+                    document.getElementById('bossHP').textContent = Math.max(0, boss.health);
+                }
+            } else if (bossActive) {
+                if (currentBoss?.mesh) scene.remove(currentBoss.mesh);
+                bossActive = false; currentBoss = null;
+                document.getElementById('bossHealthContainer').style.display = 'none';
+            }
+        });
+        
+        setInterval(() => {
+            if (!bossActive || !currentBoss?.mesh || isDead) return;
+            const playerPos = camera.position;
+            const dx = playerPos.x - currentBoss.mesh.position.x;
+            const dz = playerPos.z - currentBoss.mesh.position.z;
+            const dist = Math.sqrt(dx*dx + dz*dz);
+            if (dist > 4) {
+                currentBoss.mesh.position.x += (dx/dist) * 0.045;
+                currentBoss.mesh.position.z += (dz/dist) * 0.045;
+            } else {
+                takeDamage(currentBoss.damage);
+            }
+            currentBoss.mesh.lookAt(playerPos.x, currentBoss.mesh.position.y, playerPos.z);
+            update(bossRef, { x: currentBoss.mesh.position.x, z: currentBoss.mesh.position.z });
+        }, 100);
+        
+        // Blocks
+        onChildAdded(blocksRef, (snap) => {
+            const data = snap.val();
+            const mesh = new THREE.Mesh(
+                new THREE.BoxGeometry(1.5, 1.5, 1.5),
+                new THREE.MeshStandardMaterial({ color: data.type==='wood'?0x8b4513:data.type==='stone'?0x888888:0x444466 })
+            );
+            mesh.position.set(data.x, 0.75, data.z);
+            mesh.castShadow = true; mesh.receiveShadow = true;
+            scene.add(mesh);
+            baseBlocks.set(snap.key, mesh);
+        });
+        
+        onChildRemoved(blocksRef, (snap) => {
+            const block = baseBlocks.get(snap.key);
+            if (block) { scene.remove(block); baseBlocks.delete(snap.key); }
+        });
+        
+        // Leaderboard
+        setInterval(() => {
+            set(ref(db, `leaderboard/${playerName}`), { score, wave, color: avatarData.color });
+        }, 2000);
+        
+        onValue(leaderboardRef, (snap) => {
+            const data = snap.val() || {};
+            const sorted = Object.entries(data).sort((a,b) => b[1].score - a[1].score).slice(0,5);
+            document.getElementById('lbList').innerHTML = sorted.map(([n,d]) => 
+                `<div class="lb-entry"><span style="color:${d.color}">${n}</span><span>${d.score}</span></div>`
+            ).join('');
+        });
+        
+        onValue(waveRef, (snap) => {
+            wave = snap.val() || 1;
+            document.getElementById('wave').textContent = wave;
+        });
+        
+        window.addEventListener('beforeunload', () => remove(playerRef));
+        window.addEventListener('resize', () => {
+            camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+            renderer.setSize(innerWidth, innerHeight); labelRenderer.setSize(innerWidth, innerHeight);
+        });
+        
+        // Start
+        updateUI();
+        sendMessage(`${playerName} ist beigetreten!`, true);
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!isDead) handleMovement();
+            
+            for (let i = bulletTrails.length - 1; i >= 0; i--) {
+                bulletTrails[i].life -= 0.016;
+                if (bulletTrails[i].life <= 0) {
+                    scene.remove(bulletTrails[i].line);
+                    bulletTrails.splice(i, 1);
+                }
+            }
+            
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
