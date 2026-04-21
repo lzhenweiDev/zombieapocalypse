@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zombie Apokalypse · Survival Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 50%, #0a0505 100%);
+            font-family: 'Arial Black', Impact, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .start-container {
+            background: rgba(20,5,5,0.95);
+            border: 4px solid #8b0000;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 650px;
+            width: 90%;
+            box-shadow: 0 0 100px #400, inset 0 0 30px rgba(139,0,0,0.3);
+            backdrop-filter: blur(10px);
+            animation: pulseGlow 3s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 80px #400, inset 0 0 20px rgba(139,0,0,0.2); }
+            50% { box-shadow: 0 0 120px #800, inset 0 0 30px rgba(139,0,0,0.4); }
+        }
+        h1 {
+            text-align: center;
+            color: #ff4444;
+            font-size: 52px;
+            text-shadow: 4px 4px 0 #200, 0 0 40px #f00;
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #daa520;
+            margin-bottom: 30px;
+            font-size: 18px;
+            text-shadow: 0 0 20px #da0;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            color: #ffcc66;
+            margin-bottom: 8px;
+            font-size: 16px;
+            text-shadow: 1px 1px 0 #000;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background: #1a0a0a;
+            border: 2px solid #600;
+            border-radius: 15px;
+            color: white;
+            box-sizing: border-box;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #daa520;
+            box-shadow: 0 0 20px #800;
+        }
+        .avatar-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #1a0a0a;
+            border-radius: 20px;
+            border: 2px solid #600;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        .color-picker {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .color-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            border: 3px solid #400;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+        .color-btn.active {
+            border-color: #daa520;
+            transform: scale(1.15);
+            box-shadow: 0 0 25px currentColor;
+        }
+        .outfit-picker, .hat-picker {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .outfit-btn, .hat-btn {
+            padding: 12px 20px;
+            background: #2a0a0a;
+            border: 2px solid #600;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            transition: 0.2s;
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+        }
+        .outfit-btn:hover, .hat-btn:hover {
+            background: #3a0a0a;
+            border-color: #800;
+        }
+        .outfit-btn.active, .hat-btn.active {
+            background: #8b0000;
+            border-color: #daa520;
+            box-shadow: 0 0 15px #f44;
+        }
+        .preview {
+            text-align: center;
+            font-size: 100px;
+            margin: 20px 0;
+            text-shadow: 0 0 40px currentColor;
+            filter: drop-shadow(0 8px 10px rgba(0,0,0,0.5));
+        }
+        .start-btn {
+            width: 100%;
+            padding: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(180deg, #a00 0%, #600 100%);
+            border: 3px solid #daa520;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-shadow: 2px 2px 0 #400;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 0 #300, 0 0 30px #f44;
+        }
+        .start-btn:hover {
+            background: linear-gradient(180deg, #c00 0%, #800 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 11px 0 #300, 0 0 50px #f66;
+        }
+        .start-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 3px 0 #300, 0 0 30px #f44;
+        }
+        .leaderboard-preview {
+            margin-top: 30px;
+            padding: 20px;
+            background: #0a0505;
+            border-radius: 20px;
+            border: 1px solid #600;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+        .leaderboard-preview h3 {
+            color: #daa520;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 22px;
+            text-shadow: 0 0 15px #da0;
+        }
+        .leaderboard-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            border-bottom: 1px solid #333;
+            color: #ccc;
+            font-size: 15px;
+        }
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+        .player-count {
+            text-align: center;
+            color: #4af;
+            margin-top: 15px;
+            font-size: 16px;
+            text-shadow: 0 0 10px #4af;
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="start-container">
+        <h1>☣ ZOMBIE APOKALYPSE ☣</h1>
+        <div class="subtitle">Multiplayer Survival · Wellen · Bosse · Base-Building</div>
+        
+        <div class="input-group">
+            <label>👤 Benutzername</label>
+            <input type="text" id="usernameInput" placeholder="Dein Name..." maxlength="20" value="Survivor">
+        </div>
+        
+        <div class="avatar-section">
+            <label>🎨 Avatar Farbe</label>
+            <div class="color-picker">
+                <div class="color-btn active" style="background: #ff4444;" data-color="#ff4444"></div>
+                <div class="color-btn" style="background: #44aaff;" data-color="#44aaff"></div>
+                <div class="color-btn" style="background: #44ff44;" data-color="#44ff44"></div>
+                <div class="color-btn" style="background: #ffaa00;" data-color="#ffaa00"></div>
+                <div class="color-btn" style="background: #aa44ff;" data-color="#aa44ff"></div>
+                <div class="color-btn" style="background: #ff66cc;" data-color="#ff66cc"></div>
+                <div class="color-btn" style="background: #ffffff;" data-color="#ffffff"></div>
+                <div class="color-btn" style="background: #00ccff;" data-color="#00ccff"></div>
+            </div>
+            
+            <label>👕 Outfit</label>
+            <div class="outfit-picker">
+                <div class="outfit-btn active" data-outfit="default">🧥 Standard</div>
+                <div class="outfit-btn" data-outfit="military">🎖️ Militär</div>
+                <div class="outfit-btn" data-outfit="hazmat">☢️ Hazmat</div>
+            </div>
+            
+            <label>🎩 Hut</label>
+            <div class="hat-picker">
+                <div class="hat-btn active" data-hat="none">❌ Kein</div>
+                <div class="hat-btn" data-hat="cap">🧢 Cap</div>
+                <div class="hat-btn" data-hat="helmet">⛑️ Helm</div>
+                <div class="hat-btn" data-hat="crown">👑 Krone</div>
+            </div>
+            
+            <div class="preview" id="avatarPreview">🧟</div>
+        </div>
+        
+        <button class="start-btn" id="startGameBtn">▶ ZUM SERVER VERBINDEN</button>
+        
+        <div class="leaderboard-preview">
+            <h3>🏆 BESTENLISTE (Top 5)</h3>
+            <div class="leaderboard-list" id="leaderboardPreview">
+                <div class="leaderboard-item">Lade Bestenliste...</div>
+            </div>
+            <div class="player-count" id="playerCountDisplay">
+                🟢 Spieler online: <span id="onlineCount">0</span>
+            </div>
+        </div>
+        
+        <div class="footer-note">
+            ⚡ Tipp: Minigunner für 125k 💰 · Bosse alle 5 Wellen · Headshots = 2.5x Schaden
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDG94c5DbZjBoaG21b5YhJaEotpTzQVXO0",
+            authDomain: "gogame-b66fd.firebaseapp.com",
+            databaseURL: "https://gogame-b66fd-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "gogame-b66fd",
+            storageBucket: "gogame-b66fd.firebasestorage.app",
+            messagingSenderId: "347885192607",
+            appId: "1:347885192607:web:b586b44113612f20ace9aa"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // Avatar State
+        let selectedColor = '#ff4444';
+        let selectedOutfit = 'default';
+        let selectedHat = 'none';
+        
+        // Event Listener für Farbe
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedColor = btn.dataset.color;
+                updatePreview();
+            });
+        });
+        
+        // Event Listener für Outfit
+        document.querySelectorAll('.outfit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.outfit-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedOutfit = btn.dataset.outfit;
+                updatePreview();
+            });
+        });
+        
+        // Event Listener für Hut
+        document.querySelectorAll('.hat-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.hat-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedHat = btn.dataset.hat;
+                updatePreview();
+            });
+        });
+        
+        function updatePreview() {
+            const preview = document.getElementById('avatarPreview');
+            let emoji = '🧟';
+            
+            if (selectedOutfit === 'military') emoji = '🪖';
+            else if (selectedOutfit === 'hazmat') emoji = '☣️';
+            
+            let hatEmoji = '';
+            if (selectedHat === 'cap') hatEmoji = '🧢';
+            else if (selectedHat === 'helmet') hatEmoji = '⛑️';
+            else if (selectedHat === 'crown') hatEmoji = '👑';
+            
+            preview.textContent = hatEmoji + emoji;
+            preview.style.color = selectedColor;
+            preview.style.textShadow = `0 0 40px ${selectedColor}`;
+        }
+        
+        // Leaderboard Preview
+        const leaderboardRef = ref(db, 'leaderboard');
+        onValue(leaderboardRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            const sorted = Object.entries(data)
+                .sort((a, b) => b[1].score - a[1].score)
+                .slice(0, 5);
+            
+            const html = sorted.map(([name, info]) => `
+                <div class="leaderboard-item">
+                    <span style="display:flex;align-items:center;gap:8px;">
+                        <span style="color:${info.color || '#fff'}">${info.avatar || '🧟'}</span>
+                        <span>${name}</span>
+                    </span>
+                    <span>🎯 ${info.score || 0} (Welle ${info.wave || 1})</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('leaderboardPreview').innerHTML = html || 
+                '<div class="leaderboard-item">Noch keine Einträge</div>';
+        });
+        
+        // Player Count
+        const playersRef = ref(db, 'players');
+        onValue(playersRef, (snapshot) => {
+            const players = snapshot.val() || {};
+            const count = Object.keys(players).length;
+            document.getElementById('onlineCount').textContent = count;
+        });
+        
+        // Start Game
+        document.getElementById('startGameBtn').addEventListener('click', () => {
+            const username = document.getElementById('usernameInput').value.trim() || 'Survivor';
+            const avatarData = {
+                name: username,
+                color: selectedColor,
+                outfit: selectedOutfit,
+                hat: selectedHat
+            };
+            localStorage.setItem('zombieAvatar', JSON.stringify(avatarData));
+            window.location.href = 'game.html';
+        });
+        
+        updatePreview();
+    </script>
+</body>
+</html>
