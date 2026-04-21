@@ -1,0 +1,139 @@
+/* Zombie Apokalypse · Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial Black', 'Impact', sans-serif;
+    background: #0a0a0a;
+    color: white;
+    overflow: hidden;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a0a0a;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8b0000, #4a0000);
+    border-radius: 10px;
+    border: 1px solid #600;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #b00, #600);
+}
+
+/* Button Basis-Styles */
+button {
+    font-family: inherit;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+button:hover {
+    transform: scale(1.02);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Eingabefelder */
+input {
+    font-family: inherit;
+}
+
+input:focus {
+    outline: none;
+}
+
+/* Animationen */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Utility Klassen */
+.text-gold {
+    color: #daa520;
+}
+
+.text-red {
+    color: #ff4444;
+}
+
+.text-blue {
+    color: #4488ff;
+}
+
+.text-green {
+    color: #44ff44;
+}
+
+.bg-dark {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.border-red {
+    border: 2px solid #8b0000;
+}
+
+.border-gold {
+    border: 2px solid #daa520;
+}
+
+.rounded {
+    border-radius: 15px;
+}
+
+.shadow-red {
+    box-shadow: 0 0 20px #f44;
+}
+
+.shadow-gold {
+    box-shadow: 0 0 20px #da0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .start-container {
+        padding: 20px !important;
+    }
+    
+    h1 {
+        font-size: 36px !important;
+    }
+    
+    .color-btn {
+        width: 40px !important;
+        height: 40px !important;
+    }
+}
